@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Campus Voice - Report & Resolve Issues</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 { font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700; }
+        .header p { opacity: 0.9; font-size: 1.1rem; }
+        .container { max-width:1200px; margin:0 auto; padding:2rem 1rem;}
+        .submit-section { text-align:center; margin:2rem 0;}
+        .btn-submit {
+            background: var(--secondary); color: white; border: none; padding: 1rem 2rem; font-size: 1.1rem;
+            border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(245,158,11,0.3); transition: all 0.3s ease;
+        }
+        .btn-submit:hover {transform: translateY(-2px); box-shadow: 0 6px 12px rgba(245,158,11,0.4);}
+        .filters {display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;margin:2rem 0;padding:0 1rem;}
+        .filter-btn {background:white;border:2px solid var(--border);padding:0.5rem 1.25rem;border-radius:25px;cursor:pointer;font-size:0.95rem; font-weight:500;transition:all 0.3s;color:var(--text);}
+        .filter-btn:hover, .filter-btn.active{border-color:var(--primary);background:#eff6ff;color:var(--primary);}
+        .filter-btn.active {background:var(--primary);color:white;border-color:var(--primary);}
+        .issues-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem;margin-top:2rem;}
+        .issue-card {background:var(--card-bg);border-radius:12px;padding:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition: all 0.3s ease;border:1px solid var(--border);position:relative;}
+        .issue-card:hover{box-shadow:0 8px 20px rgba(0,0,0,0.12);transform:translateY(-4px);}
+        .issue-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem;}
+        .issue-title{font-size:1.2rem;font-weight:600;color:var(--text);flex:1;margin-right:1rem;}
+        .category-badge{padding:0.35rem 0.75rem;border-radius:20px;font-size:0.8rem;font-weight:600;white-space:nowrap;}
+        .category-academics { background: #dbeafe; color: #1e40af; }
+        .category-infrastructure { background: #fef3c7; color: #92400e; }
+        .category-food { background: #fed7aa; color: #9a3412; }
+        .category-transport { background: #d1fae5; color: #065f46; }
+        .category-sports { background: #fce7f3; color: #9f1239; }
+        .category-technology { background: #e0e7ff; color: #3730a3; }
+        .issue-description{color:var(--text-light);margin:1rem 0;line-height:1.6;}
+        .issue-footer{display:flex;gap:1rem;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
+        .upvote-btn{display:flex;align-items:center;gap:0.5rem;background:#f1f5f9;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:600;color:var(--text);transition:all 0.2s;}
+        .upvote-btn:hover{background:#e0f2fe;color:var(--primary);}
+        .downvote-btn{display:flex;align-items:center;gap:0.5rem;background:#f8e4e8;border:none;padding:0.5rem 1rem;border-radius:6px;cursor:pointer;font-weight:600;color:#ca1b3e;transition:all 0.2s;}
+        .downvote-btn:hover{background:#ffdde1;color:#b91c1c;}
+        .comment-btn{background:#eef3f9;color:#22223b;border:none;padding:0.5rem 1.1rem;border-radius:6px;cursor:pointer;font-weight:600;transition:all 0.2s;}
+        .comment-btn:hover{background:#e0eaff;color:#1d3557;}
+        .comments-list{margin:1rem 0 0 0.5rem;padding-left:0.8rem;border-left:2px solid #ecebf6;}
+        .comment-item{margin-bottom:0.4rem;font-size:0.98rem;color:#33334d;padding:0.32rem 0.7rem;background:#f6f7fa;border-radius:8px;}
+        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin:2rem 0;}
+        .stat-card{background:white;padding:1.5rem;border-radius:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.08);border-left:4px solid var(--primary);}
+        .stat-number{font-size:2.5rem;font-weight:700;color:var(--primary);}
+        .stat-label{color:var(--text-light);font-size:0.95rem;margin-top:0.5rem;}
+        .trending{position:absolute;top:-8px;right:-8px;background:var(--danger);color:white;padding:0.25rem 0.5rem;border-radius:12px;font-size:0.7rem;font-weight:700;}
+        .issue-card{position:relative;}
+        #submitModal, #commentModal {display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(42,0,25,0.12);align-items:center;justify-content:center;}
+        #submitModal .modal-box, #commentModal .modal-box{background:#fff;max-width:400px;border-radius:18px;padding:2rem;box-shadow:0 10px 36px rgba(0,0,0,0.13);margin:auto;}
+        #submitModal input,#submitModal textarea,#submitModal select, #commentModal textarea{margin-bottom:1rem;padding:0.7rem;font-size:1rem;border:1px solid #e2e8f0;border-radius:10px;width:100%;}
+        #submitModal button[type="submit"],#commentModal button[type="submit"]{background:var(--primary);color:white;border:none;padding:0.7rem 2rem;border-radius:8px;font-size:1.1rem;font-weight:600;cursor:pointer;}
+        #submitModal #closeModal,#commentModal #closeCommentModal{background:#ece6fd;color:var(--primary-dark);border:none;margin-left:1rem;padding:0.7rem 2rem;border-radius:8px;font-size:1.09rem;font-weight:500;cursor:pointer;}
+        #submitModal #closeModal:hover,#commentModal #closeCommentModal:hover{background:var(--primary-dark);color:#fff;}
+        @media (max-width: 768px) {.header h1 {font-size:1.5rem;} .issues-grid {grid-template-columns:1fr;} .filters{gap:0.5rem;} .filter-btn{padding:0.4rem 1rem;font-size:0.85rem;}}
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🎓 Campus Voice</h1>
+        <p>Report Campus Issues • Engage • Make a Difference</p>
+    </div>
+    <div class="container">
+        <!-- Stats Section -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">47</div>
+                <div class="stat-label">Active Issues</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">23</div>
+                <div class="stat-label">Resolved Issues</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">156</div>
+                <div class="stat-label">Total Participants</div>
+            </div>
+        </div>
+        <!-- Submit Button -->
+        <div class="submit-section">
+            <button class="btn-submit">➕ Submit New Issue</button>
+        </div>
+        <!-- Filter Buttons -->
+        <div class="filters">
+            <button class="filter-btn active">All Issues</button>
+            <button class="filter-btn">🎓 Academics</button>
+            <button class="filter-btn">🏢 Infrastructure</button>
+            <button class="filter-btn">🍽️ Food & Mess</button>
+            <button class="filter-btn">🚌 Transport</button>
+            <button class="filter-btn">🏃 Sports</button>
+            <button class="filter-btn">💻 Technology</button>
+        </div>
+        <div class="issues-grid">
+            <!-- Issue 1 -->
+            <div class="issue-card">
+                <span class="trending">🔥 Trending</span>
+                <div class="issue-header">
+                    <h3 class="issue-title">WiFi Down in Hostel Block A</h3>
+                    <span class="category-badge category-infrastructure">Infrastructure</span>
+                </div>
+                <p class="issue-description">
+                    The WiFi connection in Hostel Block A has been unstable for the past 3 days. Students are unable to attend online classes and complete assignments.
+                </p>
+                <div class="issue-footer">
+                    <button class="upvote-btn">👍 <span>78</span></button>
+                    <button class="downvote-btn">👎 <span>3</span></button>
+                    <button class="comment-btn">💬 <span>Add Comment</span></button>
+                </div>
+                <div class="comments-list"></div>
+            </div>
+            <div class="issue-card">
+                <div class="issue-header">
+                    <h3 class="issue-title">Mess Food Quality Issue</h3>
+                    <span class="category-badge category-food">Food & Mess</span>
+                </div>
+                <p class="issue-description">
+                    The quality of food served in the mess has deteriorated significantly. Many students have complained about hygiene and taste issues.
+                </p>
+                <div class="issue-footer">
+                    <button class="upvote-btn">👍 <span>92</span></button>
+                    <button class="downvote-btn">👎 <span>8</span></button>
+                    <button class="comment-btn">💬 <span>Add Comment</span></button>
+                </div>
+                <div class="comments-list"></div>
+            </div>
+            <div class="issue-card">
+                <div class="issue-header">
+                    <h3 class="issue-title">Library Books Outdated</h3>
+                    <span class="category-badge category-academics">Academics</span>
+                </div>
+                <p class="issue-description">
+                    Many reference books in the library are outdated (10+ years old). We need updated editions for Computer Science and Engineering courses.
+                </p>
+                <div class="issue-footer">
+                    <button class="upvote-btn">👍 <span>56</span></button>
+                    <button class="downvote-btn">👎 <span>1</span></button>
+                    <button class="comment-btn">💬 <span>Add Comment</span></button>
+                </div>
+                <div class="comments-list"></div>
+            </div>
+            <div class="issue-card">
+                <span class="trending">🔥 Trending</span>
+                <div class="issue-header">
+                    <h3 class="issue-title">Campus Bus Late Timings</h3>
+                    <span class="category-badge category-transport">Transport</span>
+                </div>
+                <p class="issue-description">
+                    Campus buses are frequently late by 15-20 minutes, causing students to miss early morning classes. Need better schedule management.
+                </p>
+                <div class="issue-footer">
+                    <button class="upvote-btn">👍 <span>67</span></button>
+                    <button class="downvote-btn">👎 <span>5</span></button>
+                    <button class="comment-btn">💬 <span>Add Comment</span></button>
+                </div>
+                <div class="comments-list"></div>
+            </div>
+            <div class="issue-card">
+                <div class="issue-header">
+                    <h3 class="issue-title">Lab Computers Need Upgrade</h3>
+                    <span class="category-badge category-technology">Technology</span>
+                </div>
+                <p class="issue-description">
+                    Computer lab systems are outdated and slow. Students face difficulties running modern software and IDEs required for projects.
+                </p>
+                <div class="issue-footer">
+                    <button class="upvote-btn">👍 <span>43</span></button>
+                    <button class="downvote-btn">👎 <span>1</span></button>
+                    <button class="comment-btn">💬 <span>Add Comment</span></button>
+                </div>
+                <div class="comments-list"></div>
+            </div>
+            <div class="issue-card">
+                <div class="issue-header">
+                    <h3 class="issue-title">Sports Ground Maintenance</h3>
+                    <span class="category-badge category-sports">Sports</span>
+                </div>
+                <p class="issue-description">
+                    The football ground needs proper maintenance. The grass is uneven and there are potholes that could cause injuries during matches.
+                </p>
+                <div class="issue-footer">
+                    <button class="upvote-btn">👍 <span>38</span></button>
+                    <button class="downvote-btn">👎 <span>6</span></button>
+                    <button class="comment-btn">💬 <span>Add Comment</span></button>
+                </div>
+                <div class="comments-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Issue Popup -->
+    <div id="submitModal">
+      <div class="modal-box">
+        <h2 style="text-align:center; margin-bottom:1rem;">Submit New Issue</h2>
+        <form id="issueForm">
+          <input type="text" id="newTitle" placeholder="Issue Title" required>
+          <textarea id="newDesc" placeholder="Describe the issue..." required></textarea>
+          <select id="newCategory" required>
+            <option value="">Select Category</option>
+            <option value="Academics">Academics</option>
+            <option value="Infrastructure">Infrastructure</option>
+            <option value="Food & Mess">Food & Mess</option>
+            <option value="Transport">Transport</option>
+            <option value="Sports">Sports</option>
+            <option value="Technology">Technology</option>
+          </select>
+          <div style="text-align:center;">
+            <button type="submit">Submit</button>
+            <button type="button" id="closeModal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Comment Modal -->
+    <div id="commentModal">
+      <div class="modal-box">
+        <h2 style="text-align:center;margin-bottom:1rem;font-size:1.3rem;">Add Comment</h2>
+        <form id="commentForm">
+          <textarea id="commentInput" placeholder="Type your comment..." required></textarea>
+          <div style="text-align:center;">
+            <button type="submit">Post</button>
+            <button type="button" id="closeCommentModal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Upvote
+      function addUpvoteEvent(btn) {
+        btn.addEventListener('click', function() {
+          const countSpan = this.querySelector('span');
+          let count = parseInt(countSpan.textContent);
+          count++;
+          countSpan.textContent = count;
+          this.style.background = '#e0f2fe';
+          this.style.color = '#2563eb';
+        });
+      }
+      // Downvote
+      function addDownvoteEvent(btn) {
+        btn.addEventListener('click', function() {
+          const countSpan = this.querySelector('span');
+          let count = parseInt(countSpan.textContent);
+          count++;
+          countSpan.textContent = count;
+          this.style.background = '#ffd3de';
+          this.style.color = '#ca1b3e';
+        });
+      }
+      // Comment popup logic
+      function addCommentEvent(btn, card) {
+        btn.addEventListener('click', function() {
+          activeCommentCard = card;
+          document.getElementById('commentModal').style.display = 'flex';
+          document.getElementById('commentInput').value = '';
+        });
+      }
+      document.querySelectorAll('.upvote-btn').forEach(addUpvoteEvent);
+      document.querySelectorAll('.downvote-btn').forEach(addDownvoteEvent);
+      // Comments for default cards
+      let activeCommentCard = null;
+      document.querySelectorAll('.issue-card').forEach(function(card){
+        const btn = card.querySelector('.comment-btn');
+        if (btn) addCommentEvent(btn, card);
+      });
+      document.getElementById('closeCommentModal').addEventListener('click', function() {
+        document.getElementById('commentModal').style.display = 'none';
+      });
+      document.getElementById('commentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!activeCommentCard) return;
+        const commentsList = activeCommentCard.querySelector('.comments-list');
+        const comment = document.getElementById('commentInput').value.trim();
+        if (comment.length > 0) {
+          const div = document.createElement('div');
+          div.className = 'comment-item';
+          div.textContent = comment;
+          commentsList.appendChild(div);
+        }
+        document.getElementById('commentModal').style.display = 'none';
+      });
+      // Filter functionality
+      document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+      // Submit New Issue popup logic
+      const modal = document.getElementById('submitModal');
+      document.querySelector('.btn-submit').addEventListener('click', function() {
+        modal.style.display = 'flex';
+      });
+      document.getElementById('closeModal').addEventListener('click', function() {
+        modal.style.display = 'none';
+      });
+      document.getElementById('issueForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const title = document.getElementById('newTitle').value;
+        const desc = document.getElementById('newDesc').value;
+        const cat = document.getElementById('newCategory').value;
+        const grid = document.querySelector('.issues-grid');
+        const card = document.createElement('div');
+        card.className = 'issue-card';
+        card.innerHTML = `
+          <div class="issue-header">
+            <h3 class="issue-title">${title}</h3>
+            <span class="category-badge category-${cat.toLowerCase().replace(/[^a-z]/g,'')}">${cat}</span>
+          </div>
+          <p class="issue-description">${desc}</p>
+          <div class="issue-footer">
+            <button class="upvote-btn">👍 <span>1</span></button>
+            <button class="downvote-btn">👎 <span>0</span></button>
+            <button class="comment-btn">💬 <span>Add Comment</span></button>
+          </div>
+          <div class="comments-list"></div>
+        `;
+        grid.prepend(card);
+        addUpvoteEvent(card.querySelector('.upvote-btn'));
+        addDownvoteEvent(card.querySelector('.downvote-btn'));
+        addCommentEvent(card.querySelector('.comment-btn'), card);
+        modal.style.display = 'none';
+        this.reset();
+      });
+    </script>
+</body>
+</html>
